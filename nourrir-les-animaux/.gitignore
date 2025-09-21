@@ -1,0 +1,50 @@
+# ==============================
+# Unity
+# ==============================
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.opendb
+*.VC.db
+*.pidb.meta
+*.pdb.meta
+*.mdb
+*.mdb.meta
+*.opendb.meta
+*.suo
+*.user
+*.userprefs
+*.csproj
+*.unityproj
+*.sln
+*.sln.docstates
+
+# ==============================
+# Visual Studio
+# ==============================
+.vs/
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+# ==============================
+# OS generated
+# ==============================
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ==============================
+# Crash logs / Debug
+# ==============================
+crashlytics-build.properties
+*.stacktrace

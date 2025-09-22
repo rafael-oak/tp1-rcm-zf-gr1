@@ -1,35 +1,26 @@
 using UnityEngine;
 
-public class NewMonoBehaviourScript : MonoBehaviour
+public class FoodController : MonoBehaviour
 {
-
     public float speed = 5f;
 
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        Destroy(gameObject, 3f); // auto-destruction après 3s
     }
 
-    // Update is called once per frame
     void Update()
     {
-        transform.Translate(Vector3.up * speed * Time.deltaTime);
-
-
-        if(transform.position.y < 10f)
-        {
-            Destroy(gameObject);
-        }
-        
+        // Avancer vers l’avant (Z local)
+        transform.Translate(Vector3.forward * speed * Time.deltaTime);
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Animal"))
         {
-            
+            other.GetComponent<AnimalController>().Manger();
+            Destroy(gameObject);
         }
     }
 }

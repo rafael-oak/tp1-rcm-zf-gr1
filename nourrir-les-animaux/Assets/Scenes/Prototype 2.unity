@@ -235,6 +235,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 5
   xLimit: 7
+  foodPrefab: {fileID: 2368755611033049154, guid: 0e2e534850669ae41a156bfc8c7e17ad, type: 3}
+  spawnPoint: {fileID: 0}
 --- !u!114 &391729505
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -735,6 +737,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 5
   xLimit: 7
+  foodPrefab: {fileID: 0}
+  spawnPoint: {fileID: 0}
 --- !u!1001 &1381039200
 PrefabInstance:
   m_ObjectHideFlags: 0

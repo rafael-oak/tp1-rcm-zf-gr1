@@ -1,31 +1,23 @@
 using UnityEngine;
 
-public class MoveDown : MonoBehaviour
+public class MoveGroundLoop : MonoBehaviour
 {
-    // Vitesse du sol
-    public float vitesse = 2f;
+    public float speed = 5f;
+    public float teleportZPosition = 50f; // The Z-position to teleport to
+    public float destroyZPosition = -50f; // The Z-position at which the ground "destroys" and teleports
 
-    // Direction du mouvement
-    public Vector2 direction = new Vector2(1, 0);
-
-    private Vector3 positionDebut;
-
-    void Start()
-    {   
-        // Enregistre la position initial du sol
-        positionDebut = transform.position;
-
-    }
-
-    // Update is called once per frame
     void Update()
-    {   
-        // Calcule nouvelle position par frame
-        transform.position += (Vector3)direction * vitesse * Time.deltaTime;
+    {
+        // Move backward along the Z-axis
+        transform.position += Vector3.back * speed * Time.deltaTime;
 
-        if (transform.position.x - positionDebut.x > GetComponent<SpriteRenderer>().bounds.size.x)
+        // Check if the ground has passed the teleportation point
+        if (transform.position.z <= destroyZPosition)
         {
-            transform.position = positionDebut;
+            // Teleport the ground to the specified starting Z-position
+            transform.position = new Vector3(transform.position.x, transform.position.y, teleportZPosition);
+
+            Debug.Log($"{gameObject.name} teleported to z={teleportZPosition}");
         }
     }
 }

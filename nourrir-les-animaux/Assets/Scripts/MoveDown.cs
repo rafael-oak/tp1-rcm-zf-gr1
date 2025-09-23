@@ -3,21 +3,18 @@ using UnityEngine;
 public class MoveGroundLoop : MonoBehaviour
 {
     public float speed = 5f;
-    public float teleportZPosition = 50f; // The Z-position to teleport to
-    public float destroyZPosition = -50f; // The Z-position at which the ground "destroys" and teleports
+    public float resetZ = 50f;
+    public float thresholdZ = -50f;
 
     void Update()
     {
-        // Move backward along the Z-axis
+        if (GameManager.isGameOver) return;
+
         transform.position += Vector3.back * speed * Time.deltaTime;
 
-        // Check if the ground has passed the teleportation point
-        if (transform.position.z <= destroyZPosition)
+        if (transform.position.z <= thresholdZ)
         {
-            // Teleport the ground to the specified starting Z-position
-            transform.position = new Vector3(transform.position.x, transform.position.y, teleportZPosition);
-
-            Debug.Log($"{gameObject.name} teleported to z={teleportZPosition}");
+            transform.position = new Vector3(transform.position.x, transform.position.y, resetZ);
         }
     }
 }

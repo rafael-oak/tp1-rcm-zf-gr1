@@ -1,37 +1,54 @@
 using UnityEngine;
 
-public class FoodController : MonoBehaviour
+public class ControleNourriture : MonoBehaviour
 {
-    public float speed = 7f;
+    public float vitesse = 7f; // Vitesse de déplacement de la nourriture
+
+    void Start()
+    {
+        // Ne pas jouer les particules si le jeu est terminé
+        if (GameManager.isGameOver) return;
+
+        ParticleSystem particules = GetComponentInChildren<ParticleSystem>();
+        if (particules != null)
+        {
+            particules.Play();
+
+            // Détruire les particules après leur durée de vie
+            Destroy(particules.gameObject, particules.main.duration + particules.main.startLifetime.constantMax);
+        }
+    }
 
     void Update()
     {
-        // Avance vers le haut (Z)
-        transform.Translate(Vector3.forward * speed * Time.deltaTime);
+        // Déplacement vers l'avant (axe Z)
+        transform.Translate(Vector3.forward * vitesse * Time.deltaTime);
 
-        // Détruit si hors écran
+        // Détruire l'objet si hors écran
         if (transform.position.z > 10f)
         {
             Destroy(gameObject);
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider autre)
     {
-        if (other.CompareTag("Animal"))
+        // Vérifie si la collision est avec un animal
+        if (autre.CompareTag("Animal"))
         {
-            AnimalController animal = other.GetComponent<AnimalController>();
+            AnimalController animal = autre.GetComponent<AnimalController>();
             if (animal != null)
             {
                 animal.Manger();
 
-                // Son de nourrissage
+                // Jouer le son de nourrissage
                 AudioSource audio = GetComponent<AudioSource>();
                 if (audio != null)
                 {
                     audio.Play();
                 }
 
+                // Détruire la nourriture après avoir nourri l'animal
                 Destroy(gameObject);
             }
         }

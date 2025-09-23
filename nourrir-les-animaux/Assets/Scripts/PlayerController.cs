@@ -1,76 +1,85 @@
 ﻿using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+public class ControleJoueur : MonoBehaviour
 {
-    [Header("Déplacement")]
-    public float moveSpeed = 5f;
-    public float xLimit = 7f;
-    public float fixedZ = -4f; // Position verticale fixe
+    [Header("Deplacement")]
+    public float vitesseDeplacement = 5f;     // Vitesse du joueur
+    public float limiteX = 7f;                // Limite horizontale du terrain
+    public float positionZFixe = -4f;         // Position verticale fixe du joueur
 
     [Header("Tir")]
-    public GameObject foodPrefab;
-    public Transform spawnPoint;
+    public GameObject prefabNourriture;       // Prefab de la carotte ou nourriture
+    public Transform pointApparition;         // Position d'apparition de la nourriture
 
-    private Animator animator;
+    private Animator animateur;               // Composant Animator du joueur
 
     void Start()
     {
-        animator = GetComponent<Animator>();
+        animateur = GetComponent<Animator>();
     }
 
     void Update()
     {
         if (GameManager.isGameOver)
         {
-            animator.SetBool("isRunning", false);
-            animator.SetTrigger("isSad"); // Animation triste
+            GererFinDuJeu();
             return;
         }
 
-        // Déplacement horizontal
-        float horizontal = Input.GetAxis("Horizontal");
-        Vector3 movement = new Vector3(horizontal, 0f, 0f);
+        GererDeplacement();
+        GererTir();
+        VerifierSortieTerrain();
+    }
 
-        transform.Translate(movement.normalized * moveSpeed * Time.deltaTime, Space.World);
+    void GererDeplacement()
+    {
+        float mouvementHorizontal = Input.GetAxis("Horizontal");
+        Vector3 mouvement = new Vector3(mouvementHorizontal, 0f, 0f);
 
-        // Limite de position sur X
-        float clampedX = Mathf.Clamp(transform.position.x, -xLimit, xLimit);
-        transform.position = new Vector3(clampedX, transform.position.y, fixedZ);
+        // Déplacement horizontal indépendant du temps
+        transform.Translate(mouvement.normalized * vitesseDeplacement * Time.deltaTime, Space.World);
+
+        // Limiter la position X pour rester dans le terrain
+        float positionXLimitee = Mathf.Clamp(transform.position.x, -limiteX, limiteX);
+        transform.position = new Vector3(positionXLimitee, transform.position.y, positionZFixe);
 
         // Animation de course
-        bool isMoving = Mathf.Abs(horizontal) > 0.01f;
-        animator.SetBool("isRunning", isMoving);
+        bool estEnMouvement = Mathf.Abs(mouvementHorizontal) > 0.01f;
+        animateur.SetBool("enCourse", estEnMouvement);
+    }
 
-        // Tir de nourriture
+    void GererTir()
+    {
+        // Ne pas tirer si le jeu est terminé
+        if (GameManager.isGameOver) return;
+
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            LaunchFood();
+            if (prefabNourriture != null && pointApparition != null)
+            {
+                Instantiate(prefabNourriture, pointApparition.position, Quaternion.identity);
+            }
+            else
+            {
+                Debug.LogWarning("⚠️ prefabNourriture ou pointApparition non assigné !");
+            }
         }
     }
 
-    void LaunchFood()
+    void VerifierSortieTerrain()
     {
-        if (foodPrefab != null && spawnPoint != null)
+        if (Mathf.Abs(transform.position.x) > limiteX + 1f)
         {
-            GameObject food = Instantiate(foodPrefab, spawnPoint.position, Quaternion.identity);
-
-            // Effet de particule si présent
-            ParticleSystem ps = food.GetComponent<ParticleSystem>();
-            if (ps != null)
-            {
-                ps.Play();
-            }
-
-            // Son de tir (si AudioSource attaché au prefab)
-            AudioSource audio = food.GetComponent<AudioSource>();
-            if (audio != null)
-            {
-                audio.Play();
-            }
+            GameManager.isGameOver = true;
+            animateur.SetBool("enCourse", false);
+            animateur.SetTrigger("triste");
+            Debug.Log("💀 Fin du jeu : le joueur est sorti du terrain !");
         }
-        else
-        {
-            Debug.LogWarning("⚠️ foodPrefab ou spawnPoint non assigné !");
-        }
+    }
+
+    void GererFinDuJeu()
+    {
+        animateur.SetBool("enCourse", false);
+        animateur.SetTrigger("triste");
     }
 }

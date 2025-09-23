@@ -2,85 +2,114 @@
 
 public class AnimalController : MonoBehaviour
 {
-    public float moveSpeed = 2f;           // Vitesse vers le bas
-    public float sideSpeed = 1f;           // Vitesse latérale
-    public float fleeSpeed = 4f;           // Vitesse de fuite après nourrissage
-    public float eatDuration = 1f;         // Durée de l’animation "Eat"
+    [Header("Deplacement")]
+    public float vitesseAvant = 2f;       // Vitesse vers le bas (Z-)
+    public float vitesseLaterale = 1f;    // Vitesse latérale (X-)
+    public float vitesseFuite = 4f;       // Vitesse de fuite après avoir mangé
 
-    private bool isHungry = true;
-    private bool isFleeing = false;
-    private bool isEating = false;
+    [Header("Comportement")]
+    public float dureeManger = 1f;        // Durée pendant laquelle l'animal mange
 
-    private Animator animator;
-    private AudioSource audioSource;
-    private float eatTimer = 0f;
-    private Vector3 fleeDirection;
+    private bool estAffame = true;        // L'animal est affamé au départ
+    private bool estEnFuite = false;      // L'animal fuit après avoir mangé
+    private bool estEnTrainDeManger = false; // L'animal est en train de manger
+
+    private Animator animateur;           // Composant Animator
+    private AudioSource audio;            // Composant AudioSource
+    private float minuterieManger = 0f;   // Chrono pour la durée de manger
+    private Vector3 directionFuite;       // Direction aléatoire de fuite
 
     void Start()
     {
-        animator = GetComponent<Animator>();
-        audioSource = GetComponent<AudioSource>();
+        animateur = GetComponent<Animator>();
+        audio = GetComponent<AudioSource>();
 
-        // Direction de fuite aléatoire (gauche ou droite)
-        fleeDirection = Random.value < 0.5f ? Vector3.left : Vector3.right;
+        // Choix aléatoire de la direction de fuite (gauche ou droite)
+        directionFuite = Random.value < 0.5f ? Vector3.left : Vector3.right;
     }
 
     void Update()
     {
         if (GameManager.isGameOver)
         {
-            HandleGameOver();
+            GererFinDuJeu();
             return;
         }
 
-        if (isEating)
+        if (estEnTrainDeManger)
         {
-            eatTimer += Time.deltaTime;
-            if (eatTimer >= eatDuration)
-            {
-                isEating = false;
-                isFleeing = true;
-                animator.SetBool("isEating", false);
-                animator.SetTrigger("isHappy");
-            }
+            GererManger();
             return;
         }
 
-        if (isFleeing)
+        if (estEnFuite)
         {
-            transform.Translate(fleeDirection * fleeSpeed * Time.deltaTime);
+            transform.Translate(directionFuite * vitesseFuite * Time.deltaTime);
+            return;
         }
-        else if (isHungry)
-        {
-            // Déplacement vers le bas + latéral
-            Vector3 move = Vector3.back * moveSpeed + Vector3.left * sideSpeed;
-            transform.Translate(move * Time.deltaTime);
 
-            animator.SetBool("isWalking", true);
+        if (estAffame)
+        {
+            GererDeplacement();
+            VerifierSortieTerrain();
+        }
+    }
+
+    void GererDeplacement()
+    {
+        // Mouvement combiné vers le bas et la gauche
+        Vector3 mouvement = Vector3.back * vitesseAvant + Vector3.left * vitesseLaterale;
+        transform.Translate(mouvement * Time.deltaTime);
+        transform.forward = mouvement.normalized;
+
+        animateur.SetBool("marche", true);
+    }
+
+    void GererManger()
+    {
+        minuterieManger += Time.deltaTime;
+        if (minuterieManger >= dureeManger)
+        {
+            estEnTrainDeManger = false;
+            estEnFuite = true;
+
+            animateur.SetBool("mange", false);
+            animateur.SetTrigger("content");
+        }
+    }
+
+    void VerifierSortieTerrain()
+    {
+        if (transform.position.z < -10f) // Ajuste selon ta scène
+        {
+                GameManager.isGameOver = true;
+            animateur.SetBool("marche", false);
+            animateur.SetTrigger("triste");
+            Debug.Log("💀 Fin du jeu : un animal affamé est sorti du terrain !");
         }
     }
 
     public void Manger()
     {
-        if (!isHungry) return;
+        if (!estAffame) return;
 
-        isHungry = false;
-        isEating = true;
-        eatTimer = 0f;
+        estAffame = false;
+        estEnTrainDeManger = true;
+        minuterieManger = 0f;
 
-        animator.SetBool("isWalking", false);
-        animator.SetBool("isEating", true);
+        animateur.SetBool("marche", false);
+        animateur.SetBool("mange", true);
 
-        if (audioSource != null)
+        if (audio != null)
         {
-            audioSource.Play(); // Son de joie
+            audio.Play(); // Son de joie
         }
     }
 
-    void HandleGameOver()
+    void GererFinDuJeu()
     {
-        animator.SetBool("isWalking", false);
-        animator.SetBool("isEating", false);
-        animator.SetTrigger("isSad"); // Animation triste ou figée
+        animateur.SetBool("marche", false);
+        animateur.SetBool("mange", false);
+        animateur.SetTrigger("triste");
     }
 }

@@ -1,16 +1,23 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class GameOverTrigger : MonoBehaviour
+   
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void OnTriggerEnter(Collider other)
     {
-        
-    }
+        if (other.CompareTag("Animal"))
+        {
+            object GameManager = null;
+           
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+            // Son de GameOver
+            AudioSource audio = GetComponent<AudioSource>();
+            if (audio != null)
+            {
+                audio.Play();
+            }
+
+            Debug.Log("💀 Game Over : un animal affamé a été dépassé !");
+        }
     }
 }

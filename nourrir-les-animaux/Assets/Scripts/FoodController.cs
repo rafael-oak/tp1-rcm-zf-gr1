@@ -2,25 +2,38 @@ using UnityEngine;
 
 public class FoodController : MonoBehaviour
 {
-    public float speed = 5f;
-
-    void Start()
-    {
-        Destroy(gameObject, 3f); // auto-destruction après 3s
-    }
+    public float speed = 7f;
 
     void Update()
     {
-        // Avancer vers l’avant (Z local)
+        // Avance vers le haut (Z)
         transform.Translate(Vector3.forward * speed * Time.deltaTime);
+
+        // Détruit si hors écran
+        if (transform.position.z > 10f)
+        {
+            Destroy(gameObject);
+        }
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Animal"))
         {
-            other.GetComponent<AnimalController>().Manger();
-            Destroy(gameObject);
+            AnimalController animal = other.GetComponent<AnimalController>();
+            if (animal != null)
+            {
+                animal.Manger();
+
+                // Son de nourrissage
+                AudioSource audio = GetComponent<AudioSource>();
+                if (audio != null)
+                {
+                    audio.Play();
+                }
+
+                Destroy(gameObject);
+            }
         }
     }
 }

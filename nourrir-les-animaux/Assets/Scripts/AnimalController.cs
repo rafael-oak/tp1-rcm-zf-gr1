@@ -21,7 +21,6 @@ public class AnimalController : MonoBehaviour
     private AudioSource audioSource;
     private float eatTimer = 0f;
 
-    // Variables pour le vagabondage
     private float directionChangeTimer;
     private Vector3 wanderDirection;
 
@@ -38,7 +37,7 @@ public class AnimalController : MonoBehaviour
 
     void Update()
     {
-        // Vérifie si le jeu est terminé
+        // Si le jeu est terminé, arrêter les animations
         if (GameManager.isGameOver)
         {
             GererFinDuJeu();
@@ -81,7 +80,7 @@ public class AnimalController : MonoBehaviour
             }
 
             // Si l’animal affamé dépasse la limite visuelle, Game Over
-            if (transform.position.z < -14f && isHungry)
+            if (transform.position.z < -14f)
             {
                 GameManager.isGameOver = true;
                 Debug.Log("💀 Game Over : un animal affamé est sorti du champ !");
@@ -99,6 +98,9 @@ public class AnimalController : MonoBehaviour
         wanderDirection = new Vector3(randomX, 0, randomZ).normalized;
     }
 
+    /// <summary>
+    /// Appelée quand l’animal reçoit de la nourriture
+    /// </summary>
     public void Manger()
     {
         if (!isHungry) return;
@@ -115,16 +117,18 @@ public class AnimalController : MonoBehaviour
             audioSource.Play(); // Son de nourrissage
         }
 
-        // Lance la disparition après avoir mangé
         StartCoroutine(FinirAnimal());
     }
 
     IEnumerator FinirAnimal()
     {
         yield return new WaitForSeconds(eatDuration + 0.5f);
-        Destroy(gameObject);
+        Destroy(gameObject); // Supprime l’animal après avoir mangé
     }
 
+    /// <summary>
+    /// Gère l’état visuel de fin de jeu
+    /// </summary>
     void GererFinDuJeu()
     {
         animator.SetBool("isWalking", false);

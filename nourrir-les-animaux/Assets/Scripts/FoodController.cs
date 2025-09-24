@@ -10,7 +10,7 @@ public class FoodController : MonoBehaviour
         transform.Translate(Vector3.forward * speed * Time.deltaTime);
 
         // Détruit si hors écran
-        if (transform.position.z > 10f)
+        if (transform.position.z > 50f)
         {
             Destroy(gameObject);
         }
@@ -35,5 +35,6 @@ public class FoodController : MonoBehaviour
                 Destroy(gameObject);
             }
         }
+
     }
 }

@@ -1,63 +1,102 @@
 ﻿using UnityEngine;
+using System.Collections;
 
 public class AnimalController : MonoBehaviour
 {
-    public float moveSpeed = 2f;           // Vitesse vers le bas
-    public float sideSpeed = 1f;           // Vitesse latérale
-    public float fleeSpeed = 4f;           // Vitesse de fuite après nourrissage
-    public float eatDuration = 1f;         // Durée de l’animation "Eat"
+    public float eatDuration = 1f;          // Durée de l’animation "Manger"
+    public float constantSpeed = 5f;        // Vitesse constante vers l’arrière
 
-    private bool isHungry = true;
-    private bool isFleeing = false;
-    private bool isEating = false;
+    [Header("Comportement de vagabondage")]
+    [Tooltip("Fréquence (en secondes) à laquelle l’animal choisit une nouvelle direction aléatoire.")]
+    public float directionChangeInterval = 2.0f;
+
+    [Tooltip("Amplitude du vagabondage latéral. 0 = ligne droite, 1 = très aléatoire.")]
+    [Range(0f, 1f)]
+    public float wanderStrength = 2f;
+
+    private bool isHungry = true;           // L’animal est affamé au départ
+    private bool isEating = false;          // L’animal est en train de manger
 
     private Animator animator;
     private AudioSource audioSource;
     private float eatTimer = 0f;
-    private Vector3 fleeDirection;
+
+    // Variables pour le vagabondage
+    private float directionChangeTimer;
+    private Vector3 wanderDirection;
 
     void Start()
     {
         animator = GetComponent<Animator>();
         audioSource = GetComponent<AudioSource>();
 
-        // Direction de fuite aléatoire (gauche ou droite)
-        fleeDirection = Random.value < 0.5f ? Vector3.left : Vector3.right;
+        animator.SetBool("isWalking", true); // Démarre l’animation de marche
+
+        directionChangeTimer = Random.Range(0, directionChangeInterval); // Décalage aléatoire
+        ChoisirNouvelleDirection();
     }
 
     void Update()
     {
+        // Vérifie si le jeu est terminé
         if (GameManager.isGameOver)
         {
-            HandleGameOver();
+            GererFinDuJeu();
             return;
         }
 
+        // Si l’animal est en train de manger, il ne bouge pas
         if (isEating)
         {
             eatTimer += Time.deltaTime;
             if (eatTimer >= eatDuration)
             {
                 isEating = false;
-                isFleeing = true;
                 animator.SetBool("isEating", false);
-                animator.SetTrigger("isHappy");
+                animator.SetTrigger("isHappy"); // Animation de joie
             }
             return;
         }
 
-        if (isFleeing)
+        // Si l’animal est affamé, il se déplace
+        if (isHungry)
         {
-            transform.Translate(fleeDirection * fleeSpeed * Time.deltaTime);
-        }
-        else if (isHungry)
-        {
-            // Déplacement vers le bas + latéral
-            Vector3 move = Vector3.back * moveSpeed + Vector3.left * sideSpeed;
-            transform.Translate(move * Time.deltaTime);
+            directionChangeTimer -= Time.deltaTime;
+            if (directionChangeTimer <= 0)
+            {
+                ChoisirNouvelleDirection();
+                directionChangeTimer = directionChangeInterval;
+            }
 
-            animator.SetBool("isWalking", true);
+            // Combine le mouvement vers l’arrière avec la direction aléatoire
+            Vector3 baseDirection = Vector3.back * constantSpeed;
+            Vector3 finalDirection = (baseDirection + wanderDirection * wanderStrength).normalized;
+
+            transform.position += finalDirection * constantSpeed * Time.deltaTime;
+
+            // Tourne l’animal vers sa direction
+            if (finalDirection != Vector3.zero)
+            {
+                transform.rotation = Quaternion.LookRotation(finalDirection);
+            }
+
+            // Si l’animal affamé dépasse la limite visuelle, Game Over
+            if (transform.position.z < -14f && isHungry)
+            {
+                GameManager.isGameOver = true;
+                Debug.Log("💀 Game Over : un animal affamé est sorti du champ !");
+            }
         }
+    }
+
+    /// <summary>
+    /// Choisit une nouvelle direction aléatoire sur le plan XZ
+    /// </summary>
+    void ChoisirNouvelleDirection()
+    {
+        float randomX = Random.Range(-1f, 1f);
+        float randomZ = Random.Range(-1f, 1f);
+        wanderDirection = new Vector3(randomX, 0, randomZ).normalized;
     }
 
     public void Manger()
@@ -73,14 +112,23 @@ public class AnimalController : MonoBehaviour
 
         if (audioSource != null)
         {
-            audioSource.Play(); // Son de joie
+            audioSource.Play(); // Son de nourrissage
         }
+
+        // Lance la disparition après avoir mangé
+        StartCoroutine(FinirAnimal());
     }
 
-    void HandleGameOver()
+    IEnumerator FinirAnimal()
+    {
+        yield return new WaitForSeconds(eatDuration + 0.5f);
+        Destroy(gameObject);
+    }
+
+    void GererFinDuJeu()
     {
         animator.SetBool("isWalking", false);
         animator.SetBool("isEating", false);
-        animator.SetTrigger("isSad"); // Animation triste ou figée
+        animator.SetTrigger("isSad"); // Animation de tristesse
     }
 }

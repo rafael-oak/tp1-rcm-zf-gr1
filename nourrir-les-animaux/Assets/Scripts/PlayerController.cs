@@ -11,6 +11,8 @@ public class PlayerController : MonoBehaviour
     public GameObject foodPrefab;
     public Transform spawnPoint;
 
+    public ParticleSystem effetTir;
+
     private Animator animator;
 
     void Start()
@@ -50,27 +52,26 @@ public class PlayerController : MonoBehaviour
 
     void LaunchFood()
     {
-        if (foodPrefab != null && spawnPoint != null)
-        {
-            GameObject food = Instantiate(foodPrefab, spawnPoint.position, Quaternion.identity);
+        if (GameManager.isGameOver) return;
 
-            // Effet de particule si présent
-            ParticleSystem ps = food.GetComponent<ParticleSystem>();
-            if (ps != null)
-            {
-                ps.Play();
-            }
-
-            // Son de tir (si AudioSource attaché au prefab)
-            AudioSource audio = food.GetComponent<AudioSource>();
-            if (audio != null)
-            {
-                audio.Play();
-            }
-        }
-        else
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            Debug.LogWarning("⚠️ foodPrefab ou spawnPoint non assigné !");
+            if (foodPrefab != null && spawnPoint != null)
+            {
+                Instantiate(foodPrefab, spawnPoint.position, Quaternion.identity);
+
+                // Déclenche les particules du joueur
+                if (effetTir != null)
+                {
+                    effetTir.Play();
+                }
+
+                Debug.Log("🥕 Carotte lancée !");
+            }
+            else
+            {
+                Debug.LogWarning("⚠️ prefabNourriture ou pointApparition non assigné !");
+            }
         }
     }
 }

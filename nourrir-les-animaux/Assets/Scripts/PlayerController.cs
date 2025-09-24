@@ -73,5 +73,6 @@ public class PlayerController : MonoBehaviour
                 Debug.LogWarning("⚠️ prefabNourriture ou pointApparition non assigné !");
             }
         }
+        effetTir.Stop();
     }
 }

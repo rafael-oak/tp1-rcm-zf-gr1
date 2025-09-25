@@ -3,18 +3,21 @@ using UnityEngine;
 public class MoveGroundLoop : MonoBehaviour
 {
     public float speed = 5f;
-    public float resetZ = 50f;
-    public float thresholdZ = -50f;
+    public float teleportZPosition = 50f; // La position Z à laquelle se téléporter
+    public float destroyZPosition = -50f; // La position Z à laquelle le sol se "détruit" et se téléporte
 
     void Update()
     {
-        if (GameManager.isGameOver) return;
-
+        // Se déplacer vers l'arrière le long de l'axe Z
         transform.position += Vector3.back * speed * Time.deltaTime;
 
-        if (transform.position.z <= thresholdZ)
+        // Vérifier si le sol a dépassé le point de téléportation
+        if (transform.position.z <= destroyZPosition)
         {
-            transform.position = new Vector3(transform.position.x, transform.position.y, resetZ);
+            // Téléporter le sol à la position Z de départ spécifiée
+            transform.position = new Vector3(transform.position.x, transform.position.y, teleportZPosition);
+
+            Debug.Log($"{gameObject.name} teleported to z={teleportZPosition}");
         }
     }
 }
